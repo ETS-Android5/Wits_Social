@@ -1,10 +1,12 @@
 package com.example.witssocial.Model;
 
+import com.google.firebase.database.FirebaseDatabase;
+
 public class Post {
     private String image;
     private String Caption;
     private String username;
-    private String postid;
+    private static String postid;
     private  String profilePicture;
 
     public Post(String image, String caption, String username, String profilePicture) {
@@ -33,8 +35,8 @@ public class Post {
         return username;
     }
 
-    public String getPostid() {
-        return postid;
+    public static String getPostid() {
+        return FirebaseDatabase.getInstance().getReference("User_post").getKey();
     }
 
     public String getProfilePicture(){return profilePicture;};

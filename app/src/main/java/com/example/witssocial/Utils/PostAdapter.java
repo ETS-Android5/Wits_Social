@@ -1,7 +1,9 @@
 package com.example.witssocial.Utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.nfc.Tag;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.example.witssocial.Model.Post;
 import com.example.witssocial.Model.User;
 import com.example.witssocial.R;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,7 +33,12 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
     ArrayList<Post> list;
     DatabaseReference database, postsRef,userRef;
 
-    private FirebaseUser firebaseUser;
+
+
+
+
+    private static FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
 
     public PostAdapter(Context context, ArrayList<Post> list, PostRecyclerViewInterface postRecyclerViewInterface) {
         this.context = context;
@@ -116,15 +124,81 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
                    }
                }
            });
-
+//This  method isLikes checks if an image has been liked by a user  or not
+           isLikes(Post.getPostid(),like);
+//           Now check number of likes
+           numberOfLikes(likes,Post.getPostid());
+//Now when clickin the like button,  the post  gets liked or not
            like.setOnClickListener(new View.OnClickListener() {
                @Override
                public void onClick(View view) {
-                   like.setImageResource(R.drawable.ic_baseline_favorite_24);
-                   likes.setTextColor(Color.parseColor("#0057B8"));
+                   if(like.getTag().equals("liked"))
+                   {
+                       FirebaseDatabase.getInstance().getReference().child("Posts").child(firebaseUser.getUid()).setValue(true);
+
+                       like.setImageResource(R.drawable.ic_baseline_favorite_24);
+                       likes.setTextColor(Color.parseColor("#FF0000"));
+
+                   }else{
+                       FirebaseDatabase.getInstance().getReference().child("Posts").child(firebaseUser.getUid()).removeValue();
+                   }
+
                }
            });
        }
-   }
+
+        private void numberOfLikes(TextView likes, String postid) {
+           FirebaseDatabase.getInstance().getReference("Likes");
+           DatabaseReference likesREF  =  FirebaseDatabase.getInstance().getReference("User_post").child("Likes").child(Post.getPostid());
+            likesREF.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if(snapshot.exists())
+                    {
+                        long n = snapshot.getChildrenCount();
+                        int s = Integer.parseInt(String.valueOf(n));
+                        likes.setText(s+" likes");
+                    }
+                    else {
+                        like.setImageResource(R.drawable.ic_like);
+                        likes.setTextColor(Color.parseColor("#808080"));
+                        like.setTag("like");
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+       }
+
+        private void isLikes(String postid, ImageView like) {
+       final DatabaseReference likesREF  =  FirebaseDatabase.getInstance().getReference().child("Likes").child(postid);
+            likesREF.addValueEventListener(new ValueEventListener() {
+           @Override
+           public void onDataChange(@NonNull DataSnapshot snapshot) {
+               if(snapshot.child(firebaseUser.getUid()).exists())
+               {
+                   like.setImageResource(R.drawable.ic_baseline_favorite_24);
+                   likes.setTextColor(Color.parseColor("#FF0000"));
+                   like.setTag("liked");
+               }
+               else {
+                   like.setImageResource(R.drawable.ic_like);
+                   likes.setTextColor(Color.parseColor("#808080"));
+                   like.setTag("like");
+               }
+
+           }
+
+           @Override
+           public void onCancelled(@NonNull DatabaseError error) {
+
+           }
+       });
+
+        }
+    }
 
 }
