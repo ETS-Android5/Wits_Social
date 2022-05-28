@@ -9,7 +9,7 @@ public class Post {
     private static String postid;
     private  String profilePicture;
 
-    public Post(String image, String caption, String username, String profilePicture) {
+    public Post(String postid, String image, String caption, String username, String profilePicture) {
         this.image = image;
         this.Caption = caption;
         this.username = username;
